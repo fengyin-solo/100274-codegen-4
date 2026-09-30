@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.routers import ROUTERS
+from app.services.booking import BookingService
 from app.store import store
 
 app = FastAPI(title="港口集装箱作业管理平台", version="1.0.0")
@@ -34,5 +35,28 @@ def health() -> dict[str, object]:
 
 @app.get("/api/overview")
 def overview() -> dict[str, object]:
-    """运营概览：把各业务模块的待处理量汇总成看板卡片。"""
-    return store.overview()
+    """运营概览：把各业务模块的待处理量汇总成看板卡片。
+
+    订舱受理的票数改走 BookingService.summary()，与订舱列表共用过滤口径，
+    避免概览把重复提交、已释放、信息不全的订舱也算成待受理。
+    """
+    data = store.overview()
+    booking_summary = BookingService().summary()
+    modules = []
+    for item in data["modules"]:
+        if item["name"] == "booking":
+            modules.append({
+                "name": item["name"],
+                "created": booking_summary["total"],
+                "pending": booking_summary["pending"],
+                "abnormal": booking_summary["excluded"],
+            })
+        else:
+            modules.append(item)
+    cards = [
+        {"label": "业务模块", "value": len(modules)},
+        {"label": "今日新增", "value": sum(int(item["created"]) for item in modules)},
+        {"label": "待处理", "value": sum(int(item["pending"]) for item in modules)},
+        {"label": "异常量", "value": sum(int(item["abnormal"]) for item in modules)},
+    ]
+    return {"cards": cards, "modules": modules, "booking_summary": booking_summary}

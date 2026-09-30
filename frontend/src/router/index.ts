@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import Dashboard from '@/views/Dashboard.vue'
+const Booking = () => import('@/views/booking/index.vue')
+const BookingDetail = () => import('@/views/booking/detail.vue')
 const Berth = () => import('@/views/berth/index.vue')
 const Vessel = () => import('@/views/vessel/index.vue')
 const Quaycrane = () => import('@/views/quaycrane/index.vue')
@@ -26,6 +28,8 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', name: 'dashboard', component: Dashboard },
+    { path: '/booking', name: 'booking', component: Booking },
+    { path: '/booking/:id', name: 'booking-detail', component: BookingDetail },
     { path: '/berth', name: 'berth', component: Berth },
     { path: '/vessel', name: 'vessel', component: Vessel },
     { path: '/quaycrane', name: 'quaycrane', component: Quaycrane },

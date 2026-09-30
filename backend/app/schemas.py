@@ -21,6 +21,30 @@ class ActionResult(BaseModel):
     entry: dict[str, Any] | None = None
 
 
+class ExcludedBooking(BaseModel):
+    """被过滤的订舱：除编号外必须带上过滤原因，页面要逐条点名。"""
+
+    id: int
+    订舱号: str | None = None
+    托运人名称: str | None = None
+    航线: str | None = None
+    提交时间: str | None = None
+    截关时间: str | None = None
+    reasons: list[str] = Field(default_factory=list)
+    过滤原因: str = ""
+
+
+class BookingPageResult(BaseModel):
+    """订舱受理列表：可受理分页 + 被过滤明细 + 筛选项同源返回。"""
+
+    items: list[dict[str, Any]]
+    total: int
+    page: int = 1
+    size: int = 20
+    excluded: list[ExcludedBooking] = Field(default_factory=list)
+    options: dict[str, list[str]] = Field(default_factory=dict)
+
+
 class EntryPayload(BaseModel):
     """登记或修改一条业务记录时提交的字段集合。"""
 
