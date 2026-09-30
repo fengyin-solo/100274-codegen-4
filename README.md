@@ -49,6 +49,7 @@ npm run dev
 
 | 模块 | 目录 | 业务对象 | 主要字段 |
 | --- | --- | --- | --- |
+| 订舱受理 | `booking` | 订舱 | 订舱号、航线、托运人、截关时间 |
 | 泊位计划 | `berth` | 泊位 | 泊位编号、泊位长度、水深条件 |
 | 船舶作业 | `vessel` | 船舶 | 船舶编号、船名、船公司 |
 | 岸桥调度 | `quaycrane` | 岸桥 | 岸桥编号、岸桥型号、额定起重量 |
@@ -76,3 +77,11 @@ npm run dev
   `backend/app/routers/<模块>.py`，业务规则在 `backend/app/services/<模块>.py`。
 - 列表接口统一返回 `{ items, total, page, size }`，动作接口统一返回 `{ ok, message }`。
 - 状态流转只允许在 `app/services` 里改，路由层不做业务判断。
+
+### 订舱受理口径
+
+- 按「航线 + 托运人」定位订舱，条件写在路由 query 里，翻页、进明细再返回都保持不变。
+- 列表按截关时间从近到远排列；`GET /api/booking` 额外返回 `excluded`，逐条写明
+  被过滤的订舱与原因（舱位已释放 / 托运人信息不全 / 重复提交只认第一次受理）。
+- 运营概览的「待受理订舱」票数复用 `BookingService.accepted_scope`，与列表同源；
+  明细页路由 `/booking/:id`，列表页通过 KeepAlive + 滚动位置记忆返回原位置。

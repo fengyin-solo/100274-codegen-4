@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.routers import ROUTERS
+from app.services.booking import BookingService
 from app.store import store
 
 app = FastAPI(title="港口集装箱作业管理平台", version="1.0.0")
@@ -34,5 +35,16 @@ def health() -> dict[str, object]:
 
 @app.get("/api/overview")
 def overview() -> dict[str, object]:
-    """运营概览：把各业务模块的待处理量汇总成看板卡片。"""
-    return store.overview()
+    """运营概览：把各业务模块的待处理量汇总成看板卡片。
+
+    待受理订舱票数直接复用订舱受理口径（BookingService.accepted_scope），
+    保证看板读到的票数与订舱列表同源。
+    """
+    data = store.overview()
+    pending_bookings = BookingService().pending_count()
+    data["pending_bookings"] = pending_bookings
+    data["cards"].insert(
+        1,
+        {"label": "待受理订舱", "value": pending_bookings},
+    )
+    return data

@@ -7,10 +7,16 @@
       </div>
     </header>
     <div class="stat-row">
-      <article v-for="card in cards" :key="card.label" class="stat-card">
+      <RouterLink
+        v-for="card in displayCards"
+        :key="card.label"
+        class="stat-card"
+        :class="{ 'stat-link': card.to }"
+        :to="card.to ?? { path: '/' }"
+      >
         <span class="stat-label">{{ card.label }}</span>
         <strong class="stat-value">{{ card.value }}</strong>
-      </article>
+      </RouterLink>
     </div>
     <table class="data-table">
       <thead>
@@ -29,26 +35,58 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 import { fetchJson } from '@/api/client'
+
+type Card = { label: string; value: number; to?: string }
 
 type Overview = {
   cards: { label: string; value: number }[]
   modules: { name: string; created: number; pending: number; abnormal: number }[]
+  pending_bookings?: number
 }
 
-const cards = ref<Overview['cards']>([])
+const cards = ref<Card[]>([])
 const moduleRows = ref<Overview['modules']>([])
+
+// 待受理订舱卡片直接链接到订舱受理页；票数来自 /api/overview，与订舱列表同源
+const displayCards = computed(() =>
+  cards.value.map((card) =>
+    card.label === '待受理订舱' ? { ...card, to: '/booking' } : card,
+  ),
+)
 
 onMounted(async () => {
   try {
     const payload = await fetchJson<Overview>('/api/overview')
-    cards.value = payload.cards
+    cards.value = [
+      ...(payload.cards ?? []),
+      // 兜底：后端若没带待受理订舱，也保持入口可见且票数为 0
+      ...(payload.cards?.some((card) => card.label === '待受理订舱')
+        ? []
+        : [{ label: '待受理订舱', value: payload.pending_bookings ?? 0 }]),
+    ]
     moduleRows.value = payload.modules
   } catch {
-    cards.value = [{"label": "业务模块", "value": 0}, {"label": "今日新增", "value": 0}]
-    moduleRows.value = [{"name": "泊位计划", "created": 0, "pending": 0, "abnormal": 0}, {"name": "船舶作业", "created": 0, "pending": 0, "abnormal": 0}, {"name": "岸桥调度", "created": 0, "pending": 0, "abnormal": 0}, {"name": "堆场策划", "created": 0, "pending": 0, "abnormal": 0}, {"name": "场桥调度", "created": 0, "pending": 0, "abnormal": 0}, {"name": "内集卡调度", "created": 0, "pending": 0, "abnormal": 0}, {"name": "集装箱信息", "created": 0, "pending": 0, "abnormal": 0}, {"name": "闸口管理", "created": 0, "pending": 0, "abnormal": 0}, {"name": "危险品申报", "created": 0, "pending": 0, "abnormal": 0}, {"name": "冷藏箱监控", "created": 0, "pending": 0, "abnormal": 0}, {"name": "绑扎加固", "created": 0, "pending": 0, "abnormal": 0}, {"name": "工班管理", "created": 0, "pending": 0, "abnormal": 0}, {"name": "箱体修洗", "created": 0, "pending": 0, "abnormal": 0}, {"name": "理货记录", "created": 0, "pending": 0, "abnormal": 0}, {"name": "海关查验", "created": 0, "pending": 0, "abnormal": 0}, {"name": "支线驳船", "created": 0, "pending": 0, "abnormal": 0}, {"name": "超限箱管理", "created": 0, "pending": 0, "abnormal": 0}, {"name": "空箱堆存", "created": 0, "pending": 0, "abnormal": 0}, {"name": "能耗监测", "created": 0, "pending": 0, "abnormal": 0}, {"name": "安全巡检", "created": 0, "pending": 0, "abnormal": 0}]
+    cards.value = [
+      {"label": "业务模块", "value": 0},
+      {"label": "待受理订舱", "value": 0, "to": "/booking"},
+      {"label": "今日新增", "value": 0},
+    ]
+    moduleRows.value = []
   }
 })
 </script>
+
+<style scoped>
+.stat-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+.stat-link:hover {
+  border-color: var(--brand);
+  box-shadow: 0 1px 4px rgba(31, 111, 235, 0.15);
+}
+</style>

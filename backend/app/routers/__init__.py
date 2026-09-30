@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 from app.routers import berth as router_berth
+from app.routers import booking as router_booking
 from app.routers import vessel as router_vessel
 from app.routers import quaycrane as router_quaycrane
 from app.routers import yardplan as router_yardplan
@@ -27,4 +28,4 @@ from app.routers import emptystack as router_emptystack
 from app.routers import energy as router_energy
 from app.routers import safetycheck as router_safetycheck
 
-ROUTERS = [router_berth, router_vessel, router_quaycrane, router_yardplan, router_rtg, router_truck, router_container, router_gate, router_dangerous, router_coldchain, router_lashing, router_shift, router_repair, router_tally, router_customs, router_feeder, router_oog, router_emptystack, router_energy, router_safetycheck]
+ROUTERS = [router_berth, router_booking, router_vessel, router_quaycrane, router_yardplan, router_rtg, router_truck, router_container, router_gate, router_dangerous, router_coldchain, router_lashing, router_shift, router_repair, router_tally, router_customs, router_feeder, router_oog, router_emptystack, router_energy, router_safetycheck]

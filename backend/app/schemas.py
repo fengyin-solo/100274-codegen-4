@@ -21,6 +21,17 @@ class ActionResult(BaseModel):
     entry: dict[str, Any] | None = None
 
 
+class BookingPageResult(BaseModel):
+    """订舱受理列表：除分页数据外，还带被过滤掉的订舱及原因说明。"""
+
+    items: list[dict[str, Any]]
+    total: int
+    page: int = 1
+    size: int = 10
+    pending_total: int = 0
+    excluded: list[dict[str, Any]] = Field(default_factory=list)
+
+
 class EntryPayload(BaseModel):
     """登记或修改一条业务记录时提交的字段集合。"""
 
